@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Today's Birthdays</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+<h1>Today's Birthdays</h1>
+<a href="/dashboard" class="btn">← Back</a>
+
+{% if birthdays %}
+<form id="birthdayForm">
+<table>
+<tr><th>Select</th><th>Name</th><th>Email</th><th>Gender</th></tr>
+{% for b in birthdays %}
+<tr>
+<td><input type="checkbox" data-name="{{ b[1] }}" data-email="{{ b[2] }}" data-gender="{{ b[5] }}"></td>
+<td>{{ b[1] }}</td>
+<td>{{ b[2] }}</td>
+<td>{{ b[5] }}</td>
+</tr>
+{% endfor %}
+</table>
+<button type="button" onclick="sendEmails()">Send Wishes</button>
+</form>
+{% else %}
+<p>No birthdays today.</p>
+{% endif %}
+
+<div id="loader" class="loader" style="display:none;"></div>
+<div id="toast" class="toast" style="display:none;"></div>
+
+<script>
+function sendEmails(){
+    let selected=[...document.querySelectorAll('input:checked')].map(c=>({
+        name:c.dataset.name,
+        email:c.dataset.email,
+        gender:c.dataset.gender
+    }));
+    if(selected.length==0){
+        showToast('⚠️ Please select at least one birthday');
+        return;
+    }
+    document.getElementById('loader').style.display='block';
+    fetch('/send',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({selected})
+    })
+    .then(r=>r.json())
+    .then(r=>{
+        document.getElementById('loader').style.display='none';
+        if(r.status=='sent') showToast('🎉 Emails sent successfully!');
+        else showToast('❌ Error: '+r.message);
+    }).catch(e=>{
+        document.getElementById('loader').style.display='none';
+        showToast('❌ Network error');
+    });
+}
+
+function showToast(msg){
+    const t=document.getElementById('toast');
+    t.innerText=msg;
+    t.style.display='block';
+    setTimeout(()=>{t.style.display='none'},3000);
+}
+</script>
+</div>
+</body>
+</html>
+
