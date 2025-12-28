@@ -1,2 +1,2 @@
 # crispy-fiesta
-First Big Project Birhday Email Sender
+First Big Project Birthday Email Sender
